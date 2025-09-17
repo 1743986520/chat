@@ -15,15 +15,14 @@
 <h2>匿名聊天室</h2>
 <div id="chat"></div>
 <input type="text" id="message" placeholder="输入消息">
-<button onclick="sendMessage()">发送</button>
+<button id="sendBtn">发送</button>
 
-<!-- Firebase SDK -->
-<script type="module">
-  // Import Firebase functions
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-  import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
-  import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+<!-- Firebase CDN (兼容浏览器) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 
+<script>
   // Firebase 配置
   const firebaseConfig = {
     apiKey: "AIzaSyD0dCRRPxQFCRrssVtDGv1uynRUxzc6ZaQ",
@@ -37,17 +36,19 @@
   };
 
   // 初始化 Firebase
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  const auth = getAuth(app);
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const auth = firebase.auth();
 
   // 匿名登录
-  signInAnonymously(auth).catch(console.error);
+  auth.signInAnonymously().catch(console.error);
 
   const chatDiv = document.getElementById('chat');
+  const input = document.getElementById('message');
+  const sendBtn = document.getElementById('sendBtn');
 
   // 监听新消息
-  onChildAdded(ref(db, 'messages'), (snapshot) => {
+  db.ref('messages').on('child_added', function(snapshot) {
     const data = snapshot.val();
     const p = document.createElement('p');
     p.textContent = `${data.user}: ${data.text}`;
@@ -55,19 +56,23 @@
     chatDiv.scrollTop = chatDiv.scrollHeight;
   });
 
-  // 发送消息函数
-  function sendMessage() {
-    const input = document.getElementById('message');
+  // 发送消息
+  sendBtn.addEventListener('click', function() {
     const text = input.value.trim();
-    if(!text) return;
+    if (!text) return;
     const msg = {
       user: '匿名',
       text: text,
       timestamp: Date.now()
     };
-    push(ref(db, 'messages'), msg);
+    db.ref('messages').push(msg);
     input.value = '';
-  }
+  });
+
+  // 按 Enter 发送
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') sendBtn.click();
+  });
 </script>
 </body>
 </html>
