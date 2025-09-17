@@ -1,33 +1,28 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>匿名聊天室</title>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-<style>
-  body { font-family: sans-serif; max-width: 600px; margin: 20px auto; }
-  #chat { max-height: 70vh; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
-  #message { width: 70%; padding: 5px; font-size: 1em; }
-  button { padding: 5px 10px; font-size: 1em; }
-  .msg { margin: 5px 0; word-break: break-word; }
-  .time { color: gray; font-size: 0.8em; margin-left: 5px; }
-  @media (max-width: 600px) {
-    #message { width: 65%; }
-    button { padding: 5px 8px; font-size: 0.9em; }
-  }
-</style>
+  <meta charset="UTF-8">
+  <title>聊天室</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 20px auto; }
+    #chat { max-height: 500px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
+    #message { width: 80%; padding: 5px; }
+    button { padding: 5px 10px; }
+    .msg { margin: 5px 0; }
+    .time { color: gray; font-size: 0.8em; margin-left: 5px; }
+  </style>
 </head>
 <body>
-
-<h2>匿名聊天室</h2>
+<h2>聊天室</h2>
 <div id="chat"></div>
 <input type="text" id="message" placeholder="输入消息">
 <button onclick="sendMessage()">发送</button>
 
 <script>
+  // ---------------- Firebase 配置 ----------------
   const firebaseConfig = {
     apiKey: "YOUR_API_KEY",
     authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -41,15 +36,17 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
-  // 匿名登录（可选，保持兼容性）
+  // ---------------- 匿名登录 ----------------
   firebase.auth().signInAnonymously().catch(console.error);
 
-  // 随机用户名
+  // ---------------- 生成随机用户名 ----------------
   const username = 'User' + Math.floor(Math.random() * 100000);
 
+  // ---------------- DOM 元素 ----------------
   const chatDiv = document.getElementById('chat');
   const input = document.getElementById('message');
 
+  // ---------------- 监听新消息 ----------------
   db.ref('messages').on('child_added', snapshot => {
     const data = snapshot.val();
     const p = document.createElement('p');
@@ -61,6 +58,7 @@
     chatDiv.scrollTop = chatDiv.scrollHeight;
   });
 
+  // ---------------- 发送消息 ----------------
   function sendMessage() {
     const text = input.value.trim();
     if(!text) return;
@@ -72,10 +70,10 @@
     input.value = '';
   }
 
+  // ---------------- 回车发送 ----------------
   input.addEventListener('keypress', function(e){
     if(e.key === 'Enter'){ sendMessage(); }
   });
 </script>
-
 </body>
 </html>
