@@ -3,75 +3,76 @@
 <head>
   <meta charset="UTF-8">
   <title>匿名聊天室</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
   <style>
-    body { font-family: sans-serif; margin: 20px; }
+    body { font-family: sans-serif; max-width: 600px; margin: 20px auto; }
     #chat { max-height: 500px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
-    #message { width: 70%; }
+    #message { width: 80%; padding: 5px; }
     button { padding: 5px 10px; }
-    p { margin: 2px 0; }
+    .msg { margin: 5px 0; }
+    .time { color: gray; font-size: 0.8em; margin-left: 5px; }
   </style>
 </head>
 <body>
 <h2>匿名聊天室</h2>
 <div id="chat"></div>
 <input type="text" id="message" placeholder="输入消息">
-<button id="sendBtn">发送</button>
-
-<!-- Firebase CDN (兼容浏览器) -->
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+<button onclick="sendMessage()">发送</button>
 
 <script>
-  // Firebase 配置
+  // ---------------- Firebase 配置 ----------------
   const firebaseConfig = {
-    apiKey: "AIzaSyD0dCRRPxQFCRrssVtDGv1uynRUxzc6ZaQ",
-    authDomain: "chat-6e1ae.firebaseapp.com",
-    databaseURL: "https://chat-6e1ae-default-rtdb.firebaseio.com",
-    projectId: "chat-6e1ae",
-    storageBucket: "chat-6e1ae.firebasestorage.app",
-    messagingSenderId: "1054780449247",
-    appId: "1:1054780449247:web:7fb8517d6aa822271a246a",
-    measurementId: "G-FLS9FY6126"
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+    projectId: "YOUR_PROJECT",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
   };
 
-  // 初始化 Firebase
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
-  const auth = firebase.auth();
 
-  // 匿名登录
-  auth.signInAnonymously().catch(console.error);
+  // ---------------- 匿名登录 ----------------
+  firebase.auth().signInAnonymously().catch(console.error);
 
+  // ---------------- 生成随机用户名 ----------------
+  const username = 'User' + Math.floor(Math.random() * 100000);
+
+  // ---------------- DOM 元素 ----------------
   const chatDiv = document.getElementById('chat');
   const input = document.getElementById('message');
-  const sendBtn = document.getElementById('sendBtn');
 
-  // 监听新消息
-  db.ref('messages').on('child_added', function(snapshot) {
+  // ---------------- 监听新消息 ----------------
+  db.ref('messages').on('child_added', snapshot => {
     const data = snapshot.val();
     const p = document.createElement('p');
-    p.textContent = `${data.user}: ${data.text}`;
+    p.className = 'msg';
+    const time = new Date(data.timestamp);
+    const ts = `[${time.getHours()}:${time.getMinutes().toString().padStart(2,'0')}]`;
+    p.innerHTML = `<strong>${data.user}</strong>: ${data.text} <span class="time">${ts}</span>`;
     chatDiv.appendChild(p);
     chatDiv.scrollTop = chatDiv.scrollHeight;
   });
 
-  // 发送消息
-  sendBtn.addEventListener('click', function() {
+  // ---------------- 发送消息 ----------------
+  function sendMessage() {
     const text = input.value.trim();
-    if (!text) return;
-    const msg = {
-      user: '匿名',
+    if(!text) return;
+    db.ref('messages').push({
+      user: username,
       text: text,
       timestamp: Date.now()
-    };
-    db.ref('messages').push(msg);
+    });
     input.value = '';
-  });
+  }
 
-  // 按 Enter 发送
-  input.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') sendBtn.click();
+  // ---------------- 回车发送 ----------------
+  input.addEventListener('keypress', function(e){
+    if(e.key === 'Enter'){ sendMessage(); }
   });
 </script>
 </body>
