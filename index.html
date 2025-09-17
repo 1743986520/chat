@@ -1,25 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>聊天室</title>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-  <style>
-    body { font-family: sans-serif; }
-    #chat { max-height: 500px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; }
-    #message { width: 80%; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>匿名聊天室</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+<style>
+  body { font-family: sans-serif; margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; }
+  #chat { flex: 1; overflow-y: scroll; padding: 10px; border-bottom: 1px solid #ccc; }
+  #inputArea { display: flex; padding: 5px; }
+  #message { flex: 1; padding: 8px; font-size: 16px; }
+  button { padding: 8px 12px; font-size: 16px; margin-left: 5px; }
+  p { margin: 2px 0; word-break: break-word; }
+</style>
 </head>
 <body>
-<h2>聊天室</h2>
+
 <div id="chat"></div>
-<input type="text" id="message" placeholder="输入消息">
-<button onclick="sendMessage()">发送</button>
+<div id="inputArea">
+  <input type="text" id="message" placeholder="输入消息">
+  <button onclick="sendMessage()">发送</button>
+</div>
 
 <script>
-  // Firebase 配置
+  // Firebase 配置（替换为你自己的）
   const firebaseConfig = {
     apiKey: "YOUR_API_KEY",
     authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -30,11 +36,17 @@
     appId: "YOUR_APP_ID"
   };
 
+  // 初始化 Firebase
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
   // 匿名登录
-  firebase.auth().signInAnonymously().catch(console.error);
+  let userId;
+  firebase.auth().signInAnonymously()
+    .then(() => { 
+      userId = Math.floor(Math.random() * 1000000); // 随机数字用户名
+    })
+    .catch(console.error);
 
   const chatDiv = document.getElementById('chat');
 
@@ -50,15 +62,16 @@
   // 发送消息
   function sendMessage() {
     const input = document.getElementById('message');
-    if(input.value.trim() === '') return;
+    if(input.value.trim() === '' || !userId) return;
     const msg = { 
-      user: '匿名',
-      text: input.value,
+      user: userId,
+      text: input.value.trim(),
       timestamp: Date.now()
     };
     db.ref('messages').push(msg);
     input.value = '';
   }
 </script>
+
 </body>
 </html>
