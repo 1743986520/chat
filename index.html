@@ -7,12 +7,9 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
   <style>
-    body { font-family: sans-serif; max-width: 600px; margin: 20px auto; }
-    #chat { max-height: 500px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
-    #message { width: 80%; padding: 5px; }
-    button { padding: 5px 10px; }
-    .msg { margin: 5px 0; }
-    .time { color: gray; font-size: 0.8em; margin-left: 5px; }
+    body { font-family: sans-serif; }
+    #chat { max-height: 500px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; }
+    #message { width: 80%; }
   </style>
 </head>
 <body>
@@ -22,7 +19,7 @@
 <button onclick="sendMessage()">发送</button>
 
 <script>
-  // ---------------- Firebase 配置 ----------------
+  // Firebase 配置
   const firebaseConfig = {
     apiKey: "YOUR_API_KEY",
     authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -36,44 +33,32 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
-  // ---------------- 匿名登录 ----------------
+  // 匿名登录
   firebase.auth().signInAnonymously().catch(console.error);
 
-  // ---------------- 生成随机用户名 ----------------
-  const username = 'User' + Math.floor(Math.random() * 100000);
-
-  // ---------------- DOM 元素 ----------------
   const chatDiv = document.getElementById('chat');
-  const input = document.getElementById('message');
 
-  // ---------------- 监听新消息 ----------------
+  // 监听聊天消息
   db.ref('messages').on('child_added', snapshot => {
     const data = snapshot.val();
     const p = document.createElement('p');
-    p.className = 'msg';
-    const time = new Date(data.timestamp);
-    const ts = `[${time.getHours()}:${time.getMinutes().toString().padStart(2,'0')}]`;
-    p.innerHTML = `<strong>${data.user}</strong>: ${data.text} <span class="time">${ts}</span>`;
+    p.textContent = `${data.user}: ${data.text}`;
     chatDiv.appendChild(p);
     chatDiv.scrollTop = chatDiv.scrollHeight;
   });
 
-  // ---------------- 发送消息 ----------------
+  // 发送消息
   function sendMessage() {
-    const text = input.value.trim();
-    if(!text) return;
-    db.ref('messages').push({
-      user: username,
-      text: text,
+    const input = document.getElementById('message');
+    if(input.value.trim() === '') return;
+    const msg = { 
+      user: '匿名',
+      text: input.value,
       timestamp: Date.now()
-    });
+    };
+    db.ref('messages').push(msg);
     input.value = '';
   }
-
-  // ---------------- 回车发送 ----------------
-  input.addEventListener('keypress', function(e){
-    if(e.key === 'Enter'){ sendMessage(); }
-  });
 </script>
 </body>
 </html>
