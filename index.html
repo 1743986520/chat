@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>匿名聊天室</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    #chat { max-height: 500px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
+    #message { width: 70%; }
+    button { padding: 5px 10px; }
+    p { margin: 2px 0; }
+  </style>
+</head>
+<body>
+<h2>匿名聊天室</h2>
+<div id="chat"></div>
+<input type="text" id="message" placeholder="输入消息">
+<button onclick="sendMessage()">发送</button>
+
+<!-- Firebase SDK -->
+<script type="module">
+  // Import Firebase functions
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+  import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+  import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+
+  // Firebase 配置
+  const firebaseConfig = {
+    apiKey: "AIzaSyD0dCRRPxQFCRrssVtDGv1uynRUxzc6ZaQ",
+    authDomain: "chat-6e1ae.firebaseapp.com",
+    databaseURL: "https://chat-6e1ae-default-rtdb.firebaseio.com",
+    projectId: "chat-6e1ae",
+    storageBucket: "chat-6e1ae.firebasestorage.app",
+    messagingSenderId: "1054780449247",
+    appId: "1:1054780449247:web:7fb8517d6aa822271a246a",
+    measurementId: "G-FLS9FY6126"
+  };
+
+  // 初始化 Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const auth = getAuth(app);
+
+  // 匿名登录
+  signInAnonymously(auth).catch(console.error);
+
+  const chatDiv = document.getElementById('chat');
+
+  // 监听新消息
+  onChildAdded(ref(db, 'messages'), (snapshot) => {
+    const data = snapshot.val();
+    const p = document.createElement('p');
+    p.textContent = `${data.user}: ${data.text}`;
+    chatDiv.appendChild(p);
+    chatDiv.scrollTop = chatDiv.scrollHeight;
+  });
+
+  // 发送消息函数
+  function sendMessage() {
+    const input = document.getElementById('message');
+    const text = input.value.trim();
+    if(!text) return;
+    const msg = {
+      user: '匿名',
+      text: text,
+      timestamp: Date.now()
+    };
+    push(ref(db, 'messages'), msg);
+    input.value = '';
+  }
+</script>
+</body>
+</html>
